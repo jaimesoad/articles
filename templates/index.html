@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.css">
+    <script src="https://kit.fontawesome.com/c731921152.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+        integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+
+    <!-- The loading of KaTeX is deferred to speed up page rendering -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+        integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
+        crossorigin="anonymous"></script>
+
+    <!-- To automatically render math in text elements, include the auto-render extension: -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+        onload='renderMathInElement(
+            document.body,
+            {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ]
+            }
+        );'></script>
+    <title>{{.Title}}</title>
+</head>
+
+<body>
+    <section id="title">
+        <h1>{{.Title}}</h1>
+        <p>Published by: <span style="text-decoration: underline;">{{.Author}}</span></p>
+        <p id="read-time">{{.ReadTime}} min read &middot; {{.Date}}</p>
+        <br>
+        <hr/>
+    </section>
+    <article id="article">
+        {{.HTML}}
+    </article>
+
+    <footer>
+
+        <h1>Contact me</h1>
+
+        <div id="contacts">
+            <a class="footer-links" href="https://www.linkedin.com/in/jaime-acosta-b01b54259">
+                <div>
+                    <i class="fa-brands fa-linkedin fa-2x"></i>
+                    <p>LinkedIn</p>
+                </div>
+            </a>
+            <a class="footer-links" href="https://instagram.com/jaimesoad">
+                <div>
+                    <i class="fab fa-instagram fa-2x"></i>
+                    <p>Instagram</p>
+                </div>
+            </a>
+            <a class="footer-links" href="https://twitter.com/jaimesoad">
+                <div>
+                    <i class="fab fa-twitter fa-2x"></i>
+                    <p>Twitter</p>
+                </div>
+            </a>
+
+            <a class="footer-links" href="mailto:jaime.ac1106@gmail.com">
+                <div>
+                    <i class="fa-solid fa-envelope fa-2x"></i>
+                    <p>Email</p>
+                </div>
+            </a>
+        </div>
+    </footer>
+
+    <script src="/script/index.js"></script>
+</body>
+
+</html>

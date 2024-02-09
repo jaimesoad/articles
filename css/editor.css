@@ -1,0 +1,32 @@
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vi;
+    height: 100vh;
+    display: flex;
+    gap: 1px;
+    background: white;
+}
+
+section {
+    width: 50%;
+    background: #1e1e1e;
+}
+
+textarea {
+    background: none;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    border: none;
+    color: white;
+    margin: 0;
+    padding: 0;
+    resize: none;
+    font-family: 'Jetbrains Mono', monospace;
+}
+
+#render {
+    overflow: scroll;
+    padding: 0 2rem;
+}
