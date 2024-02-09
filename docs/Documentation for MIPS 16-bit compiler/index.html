@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.css">
+    <script src="https://kit.fontawesome.com/c731921152.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+        integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+
+    <!-- The loading of KaTeX is deferred to speed up page rendering -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+        integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
+        crossorigin="anonymous"></script>
+
+    <!-- To automatically render math in text elements, include the auto-render extension: -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+        onload='renderMathInElement(
+            document.body,
+            {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ]
+            }
+        );'></script>
+    <title>Documentation for MIPS 16-bit compiler</title>
+</head>
+
+<body>
+    <section id="title">
+        <h1>Documentation for MIPS 16-bit compiler</h1>
+        <p>Published by: <span style="text-decoration: underline;">Jaime Acosta</span></p>
+        <p id="read-time">0 min read &middot; Feb 9, 2024</p>
+        <br>
+        <hr/>
+    </section>
+    <article id="article">
+        <h2 id="usage">Usage</h2>
+<p>The compiler only takes as input files with .s extension and outputs .out
+files.</p>
+<h2 id="example">Example</h2>
+<h3 id="input">Input</h3>
+<p><code>example.s</code></p>
+<pre><code class="language-mips">li  r0,  4          # r0 = 4
+li  r1,  3 	        # r1 = 3
+mul r1,  r1, r0 	# r1 = r1 * r0
+li  r2,  2          # r2 = 2
+li  r10, 0          # r10 = 0 
+rem r3,  r1, r2     # r3 = r1 % r2
+eq  r3,  r10        # r3 == 0
+bra even            # if true, is even
+jmp odd             # else, is odd
+
+even:
+    print &quot;Number is even&quot;  # Prints the string
+    jmp end
+
+odd:
+    print &quot;Number is odd&quot;   # Prints the string
+
+end:
+    jmp end 	            # Halt
+</code></pre>
+<h3 id="output">Output</h3>
+<p>after done compiling, <code>example.out</code> will be a text file which can be fed into
+the ROM using the <a href="https://github.com/jaimesoad/OAC-16bit-computer">Logisim&rsquo;s 16bit CPU</a>.
+<br />
+Once done that, we can execute the file and this should be the expected
+output:</p>
+<p><img src="https://raw.githubusercontent.com/jaimesoad/mips-16bit-compiler/main/static/example.png" alt="Expected output" title="16 bit computer in Logisim" /></p>
+
+    </article>
+
+    <footer>
+
+        <h1>Contact me</h1>
+
+        <div id="contacts">
+            <a class="footer-links" href="https://www.linkedin.com/in/jaime-acosta-b01b54259">
+                <div>
+                    <i class="fa-brands fa-linkedin fa-2x"></i>
+                    <p>LinkedIn</p>
+                </div>
+            </a>
+            <a class="footer-links" href="https://instagram.com/jaimesoad">
+                <div>
+                    <i class="fab fa-instagram fa-2x"></i>
+                    <p>Instagram</p>
+                </div>
+            </a>
+            <a class="footer-links" href="https://twitter.com/jaimesoad">
+                <div>
+                    <i class="fab fa-twitter fa-2x"></i>
+                    <p>Twitter</p>
+                </div>
+            </a>
+
+            <a class="footer-links" href="mailto:jaime.ac1106@gmail.com">
+                <div>
+                    <i class="fa-solid fa-envelope fa-2x"></i>
+                    <p>Email</p>
+                </div>
+            </a>
+        </div>
+    </footer>
+
+    <script src="/script/index.js"></script>
+</body>
+
+</html>

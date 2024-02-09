@@ -36,7 +36,7 @@ func main() {
 
 	templ.Execute(&buf, article)
 
-	outdir := "articles/" + article.Title
+	outdir := "docs/" + article.Title
 
 	_, err = os.Stat(outdir)
 
