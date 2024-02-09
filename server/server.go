@@ -22,8 +22,8 @@ func main() {
 
 	e := echo.New()
 
-	e.Static("/css", "./docs/css")
-	e.Static("/script", "./docs/script")
+	e.Static("/articles/css", "./docs/css")
+	e.Static("/articles/script", "./docs/script")
 
 	e.GET("/", func(c echo.Context) error {
 		html, err := methods.LoadFile(file, markdown)
