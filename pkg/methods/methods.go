@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"regexp"
 	"time"
@@ -94,5 +95,5 @@ func GetReadTime(name string) int {
 	regex := regexp.MustCompile(`\w+`)
 	wordCount := len(regex.FindAllString(post, -1))
 
-	return wordCount / WORDS_PER_MINUTE
+	return int(math.Ceil(float64(wordCount) / float64(WORDS_PER_MINUTE)))
 }

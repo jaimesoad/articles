@@ -3,32 +3,32 @@ package main
 import (
 	"article/pkg/methods"
 	"article/pkg/models"
+	"fmt"
 	"log"
 	"net/http"
 	"text/template"
-
-	"github.com/labstack/echo/v4"
 )
 
 type Code struct {
 	Text string `json:"text"`
 }
 
-const file = "markdown/hello.md"
+const file = "markdown/mips-16bit.md"
 
 func main() {
 
 	markdown := methods.NewMarkdown()
 
-	e := echo.New()
+	static := http.FileServer(http.Dir("./docs"))
+	http.Handle("/articles/", http.StripPrefix("/articles/", static))
 
-	e.Static("/articles/css", "./docs/css")
-	e.Static("/articles/script", "./docs/script")
-
-	e.GET("/", func(c echo.Context) error {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		html, err := methods.LoadFile(file, markdown)
+
 		if err != nil {
-			return c.String(http.StatusInternalServerError, err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
 		}
 
 		article := models.Article{
@@ -42,33 +42,40 @@ func main() {
 
 		templ := template.Must(template.ParseFiles("templates/index.html"))
 
-		return templ.Execute(c.Response(), article)
+		templ.Execute(w, article)
 	})
 
-	e.GET("/editor", func(c echo.Context) error {
+	http.HandleFunc("/editor", func(w http.ResponseWriter, r *http.Request) {
 		templ := template.Must(template.ParseFiles("templates/editor.html"))
-		return templ.Execute(c.Response(), nil)
+		templ.Execute(w, nil)
 	})
 
-	e.POST("/convert", func(c echo.Context) error {
-		data := c.FormValue("data")
+	http.HandleFunc("POST /convert", func(w http.ResponseWriter, r *http.Request) {
+		data := r.FormValue("data")
 
 		file, err := methods.FromString(data, markdown)
 		if err != nil {
-			return c.NoContent(http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 
-		return c.HTML(http.StatusOK, file)
+		w.Header().Add("Content-Type", "text/html")
+		w.Write([]byte(file))
 	})
 
-	e.GET("/raw", func(c echo.Context) error {
-		file, err := methods.LoadFile("hello.md", markdown)
+	http.HandleFunc("/raw", func(w http.ResponseWriter, r *http.Request) {
+		file, err := methods.LoadFile(file, markdown)
 		if err != nil {
-			return c.String(http.StatusInternalServerError, err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
 		}
 
-		return c.HTML(http.StatusOK, file)
+		w.Header().Add("Content-Type", "text/html")
+		w.Write([]byte(file))
 	})
 
-	log.Fatal(e.Start(":3000"))
+	fmt.Println("Server running on http://localhost:3000")
+
+	log.Fatal(http.ListenAndServe(":3000", nil))
 }
