@@ -6,6 +6,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"path"
 	"regexp"
 	"time"
 
@@ -96,4 +97,25 @@ func GetReadTime(name string) int {
 	wordCount := len(regex.FindAllString(post, -1))
 
 	return int(math.Ceil(float64(wordCount) / float64(WORDS_PER_MINUTE)))
+}
+
+func GetDirectoryMD(directory string) []string {
+	var out []string
+
+	files, err := os.ReadDir(directory)
+	if err != nil {
+		fmt.Println(err.Error())
+		return out
+	}
+
+	for _, file := range files {
+
+		if file.IsDir() || path.Ext(file.Name()) != ".md" {
+			continue
+		}
+
+		out = append(out, file.Name())
+	}
+
+	return out
 }

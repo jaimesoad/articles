@@ -1,0 +1,10 @@
+package tpls
+
+import "strings"
+
+templ LoadArticles(articles []string) {
+    for _, article := range articles {
+        <a href={templ.SafeURL("/"+strings.Split(article, ".")[0])}>{article}</a>
+        <br></br>
+    }
+}

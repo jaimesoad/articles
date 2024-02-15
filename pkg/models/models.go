@@ -1,5 +1,7 @@
 package models
 
+type JSON map[string]interface{}
+
 type Article struct {
 	ReadTime int
 	Title    string

@@ -3,9 +3,15 @@ package main
 import (
 	"article/pkg/methods"
 	"article/pkg/models"
+	"article/pkg/tpls"
+	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"text/template"
 )
 
@@ -13,7 +19,7 @@ type Code struct {
 	Text string `json:"text"`
 }
 
-const file = "markdown/mips-16bit.md"
+const MDDirectory = "markdown"
 
 func main() {
 
@@ -23,26 +29,15 @@ func main() {
 	http.Handle("/articles/", http.StripPrefix("/articles/", static))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		html, err := methods.LoadFile(file, markdown)
+		articles := tpls.LoadArticles(methods.GetDirectoryMD(MDDirectory))
 
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
+		var buf bytes.Buffer
 
-		article := models.Article{
-			Author:   "Jaime Acosta",
-			Date:     methods.GetCurrentDate(),
-			HTML:     html,
-			ReadTime: methods.GetReadTime(file),
-			Filename: file,
-			Title:    "Learn Golang in one blog",
-		}
+		articles.Render(context.Background(), &buf)
 
-		templ := template.Must(template.ParseFiles("templates/index.html"))
+		templ := template.Must(template.ParseFiles("templates/root.html"))
 
-		templ.Execute(w, article)
+		templ.Execute(w, buf.String())
 	})
 
 	http.HandleFunc("/editor", func(w http.ResponseWriter, r *http.Request) {
@@ -64,15 +59,79 @@ func main() {
 	})
 
 	http.HandleFunc("/raw", func(w http.ResponseWriter, r *http.Request) {
-		file, err := methods.LoadFile(file, markdown)
+		http.Redirect(w, r, "/md", http.StatusPermanentRedirect)
+	})
+
+	http.HandleFunc("/raw/{filename}", func(w http.ResponseWriter, r *http.Request) {
+		filename := "markdown/" + r.PathValue("filename") + ".md"
+
+		file, err := methods.LoadFile(filename, markdown)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte(err.Error()))
 			return
 		}
 
 		w.Header().Add("Content-Type", "text/html")
 		w.Write([]byte(file))
+	})
+
+	http.HandleFunc("/md", func(w http.ResponseWriter, r *http.Request) {
+		files := methods.GetDirectoryMD(MDDirectory)
+
+		blob, err := json.Marshal(models.JSON{"files": files})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		w.Header().Add("Content-Type", "application/json")
+		w.Write(blob)
+	})
+
+	http.HandleFunc("/md/{filename}", func(w http.ResponseWriter, r *http.Request) {
+		filename := "markdown/" + r.PathValue("filename") + ".md"
+
+		file, err := os.Open(filename)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		blob, err := io.ReadAll(file)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		w.Write(blob)
+	})
+
+	http.HandleFunc("/{filename}", func(w http.ResponseWriter, r *http.Request) {
+		filename := r.PathValue("filename")
+
+		data := models.Article{
+			Title:    filename,
+			Author:   "Jaime Acosta",
+			Date:     methods.GetCurrentDate(),
+			Filename: "markdown/" + filename,
+		}
+
+		file, err := methods.LoadFile(data.Filename+".md", markdown)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		data.HTML = file
+		data.ReadTime = methods.GetReadTime(data.Filename + ".md")
+
+		templ := template.Must(template.ParseFiles("templates/index.html"))
+
+		templ.Execute(w, data)
 	})
 
 	fmt.Println("Server running on http://localhost:3000")
