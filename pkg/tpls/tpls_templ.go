@@ -30,7 +30,7 @@ func LoadArticles(articles []string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var2 templ.SafeURL = templ.SafeURL("/" + strings.Split(article, ".")[0])
+			var templ_7745c5c3_Var2 templ.SafeURL = templ.SafeURL("/articles/" + strings.Split(article, ".")[0])
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var2)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -42,7 +42,7 @@ func LoadArticles(articles []string) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(article)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/tpls/tpls.templ`, Line: 6, Col: 76}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/tpls/tpls.templ`, Line: 6, Col: 85}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {

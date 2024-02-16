@@ -1,7 +1,9 @@
 package methods
 
 import (
+	"article/pkg/models"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math"
@@ -118,4 +120,25 @@ func GetDirectoryMD(directory string) []string {
 	}
 
 	return out
+}
+
+func LoadMetadata(path string) (models.Article, error) {
+	file, err := os.Open(path+"/metadata.json")
+	if err != nil {
+		return models.Article{}, err
+	}
+
+	blob, err := io.ReadAll(file)
+	if err != nil {
+		return models.Article{}, err
+	}
+
+	var out models.Article
+
+	err = json.Unmarshal(blob, &out)
+	if err != nil {
+		return models.Article{}, err
+	}
+
+	return out, nil
 }

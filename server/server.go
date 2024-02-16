@@ -6,13 +6,14 @@ import (
 	"article/pkg/tpls"
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"text/template"
+
+	"github.com/labstack/echo/v4"
 )
 
 type Code struct {
@@ -25,10 +26,17 @@ func main() {
 
 	markdown := methods.NewMarkdown()
 
-	static := http.FileServer(http.Dir("./docs"))
-	http.Handle("/articles/", http.StripPrefix("/articles/", static))
+	e := echo.New()
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	g := e.Group("/articles")
+
+	e.GET("/", func(c echo.Context) error {
+		return c.Redirect(http.StatusPermanentRedirect, "/articles")
+	})
+
+	g.Static("/static", "docs/static")
+
+	g.GET("", func(c echo.Context) error {
 		articles := tpls.LoadArticles(methods.GetDirectoryMD(MDDirectory))
 
 		var buf bytes.Buffer
@@ -37,81 +45,64 @@ func main() {
 
 		templ := template.Must(template.ParseFiles("templates/root.html"))
 
-		templ.Execute(w, buf.String())
+		return templ.Execute(c.Response(), buf.String())
 	})
 
-	http.HandleFunc("/editor", func(w http.ResponseWriter, r *http.Request) {
+	g.GET("/editor", func(c echo.Context) error {
 		templ := template.Must(template.ParseFiles("templates/editor.html"))
-		templ.Execute(w, nil)
+		return templ.Execute(c.Response(), nil)
 	})
 
-	http.HandleFunc("POST /convert", func(w http.ResponseWriter, r *http.Request) {
-		data := r.FormValue("data")
+	g.POST("/convert", func(c echo.Context) error {
+		data := c.FormValue("data")
 
 		file, err := methods.FromString(data, markdown)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
+			return c.NoContent(http.StatusBadRequest)
 		}
 
-		w.Header().Add("Content-Type", "text/html")
-		w.Write([]byte(file))
+		return c.HTML(http.StatusOK, file)
 	})
 
-	http.HandleFunc("/raw", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/md", http.StatusPermanentRedirect)
+	g.GET("/raw", func(c echo.Context) error {
+		return c.Redirect(http.StatusPermanentRedirect, "/md")
 	})
 
-	http.HandleFunc("/raw/{filename}", func(w http.ResponseWriter, r *http.Request) {
-		filename := "markdown/" + r.PathValue("filename") + ".md"
+	g.GET("/raw/:filename", func(c echo.Context) error {
+		filename := "markdown/" + c.Param("filename") + ".md"
 
 		file, err := methods.LoadFile(filename, markdown)
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(err.Error()))
-			return
+			return c.String(http.StatusNotFound, err.Error())
 		}
 
-		w.Header().Add("Content-Type", "text/html")
-		w.Write([]byte(file))
+		return c.HTML(http.StatusOK, file)
 	})
 
-	http.HandleFunc("/md", func(w http.ResponseWriter, r *http.Request) {
+	g.GET("/md", func(c echo.Context) error {
 		files := methods.GetDirectoryMD(MDDirectory)
 
-		blob, err := json.Marshal(models.JSON{"files": files})
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
-		}
-
-		w.Header().Add("Content-Type", "application/json")
-		w.Write(blob)
+		return c.JSON(http.StatusOK, models.JSON{"files": files})
 	})
 
-	http.HandleFunc("/md/{filename}", func(w http.ResponseWriter, r *http.Request) {
-		filename := "markdown/" + r.PathValue("filename") + ".md"
+	g.GET("/md/:filename", func(c echo.Context) error {
+		filename := "markdown/" + c.Param("filename") + ".md"
 
 		file, err := os.Open(filename)
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			w.Write([]byte(err.Error()))
-			return
+			return c.String(http.StatusNotFound, err.Error())
 		}
 
 		blob, err := io.ReadAll(file)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
-			return
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
-		w.Write(blob)
+		return c.String(http.StatusOK, string(blob))
 	})
 
-	http.HandleFunc("/{filename}", func(w http.ResponseWriter, r *http.Request) {
-		filename := r.PathValue("filename")
+	g.GET("/:filename", func(c echo.Context) error {
+		filename := c.Param("filename")
 
 		data := models.Article{
 			Title:    filename,
@@ -122,8 +113,7 @@ func main() {
 
 		file, err := methods.LoadFile(data.Filename+".md", markdown)
 		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			return
+			return c.NoContent(http.StatusNotFound)
 		}
 
 		data.HTML = file
@@ -131,10 +121,10 @@ func main() {
 
 		templ := template.Must(template.ParseFiles("templates/index.html"))
 
-		templ.Execute(w, data)
+		return templ.Execute(c.Response(), data)
 	})
 
 	fmt.Println("Server running on http://localhost:3000")
 
-	log.Fatal(http.ListenAndServe(":3000", nil))
+	log.Fatal(e.Start(":3000"))
 }

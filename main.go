@@ -3,57 +3,99 @@ package main
 import (
 	"article/pkg/methods"
 	"article/pkg/models"
+	"article/pkg/tpls"
 	"bytes"
-	"flag"
-	"fmt"
+	"context"
+	"encoding/json"
+	"log"
 	"os"
+	"path/filepath"
+	"strings"
 	"text/template"
 )
 
-func main() {
-	var article models.Article
+const author = "Jaime Acosta"
+const dirname = "markdown"
 
-	flag.StringVar(&article.Author, "author", "Jaime Acosta", "")
-	flag.StringVar(&article.Title, "title", "", "")
-	flag.StringVar(&article.Filename, "file", "", "")
-	flag.Parse()
+func main() {
+	articles := methods.GetDirectoryMD(dirname)
+
+	templ := template.Must(template.ParseFiles("templates/root.html"))
+
+	links := tpls.LoadArticles(articles)
+
+	root, err := os.Create("docs/index.html")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	var linkBlob bytes.Buffer
+
+	links.Render(context.Background(), &linkBlob)
+
+	templ.Execute(root, linkBlob.String())
+	root.Close()
 
 	markdown := methods.NewMarkdown()
 
-	converted, err := methods.LoadFile(article.Filename, markdown)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	for _, filename := range articles {
+		outdir := "docs/" + strings.TrimSuffix(filename, filepath.Ext(filename))
 
-	article.HTML = converted
-	article.Date = methods.GetCurrentDate()
-	article.ReadTime = methods.GetReadTime(article.Filename)
-
-	var buf bytes.Buffer
-
-	templ := template.Must(template.ParseFiles("templates/index.html"))
-
-	templ.Execute(&buf, article)
-
-	outdir := "docs/" + article.Title
-
-	_, err = os.Stat(outdir)
-
-	if err != nil {
-		err = os.Mkdir(outdir, os.ModePerm)
-
+		article, err := methods.LoadMetadata(outdir)
 		if err != nil {
-			fmt.Println(err.Error())
+			article = models.Article{
+				Author:   author,
+				Filename: dirname + "/" + filename,
+				Title:    strings.TrimSuffix(filename, filepath.Ext(filename)),
+				Date:     methods.GetCurrentDate(),
+			}
+		}
+
+		converted, err := methods.LoadFile(article.Filename, markdown)
+		if err != nil {
+			log.Panic(err)
 			return
 		}
-	}
 
-	f, err := os.Create(outdir + "/index.html")
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+		article.HTML = converted
+		article.ReadTime = methods.GetReadTime(article.Filename)
 
-	f.WriteString(buf.String())
+		templ = template.Must(template.ParseFiles("templates/index.html"))
+
+		_, err = os.Stat(outdir)
+
+		if err != nil {
+			err = os.Mkdir(outdir, os.ModePerm)
+
+			if err != nil {
+				log.Panic(err)
+				return
+			}
+		}
+
+		f, err := os.Create(outdir + "/index.html")
+		if err != nil {
+			log.Panic(err)
+			return
+		}
+
+		templ.Execute(f, article)
+		f.Close()
+
+		f, err = os.Create(outdir + "/metadata.json")
+		if err != nil {
+			log.Panic(err)
+			return
+		}
+
+		blob, err := json.MarshalIndent(article, "", "\t")
+		if err != nil {
+			log.Panic(err)
+			return
+		}
+
+		f.Write(blob)
+		f.Close()
+	}
 }
