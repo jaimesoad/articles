@@ -47,12 +47,15 @@ h6 {
 html, body {
     margin: 0;
     padding: 0;
+    min-height: 100vh;
 }
 
 body {
     background: #1e1e1e;
     color: white;
     font-family: 'PT serif', serif;
+    display: flex;
+    flex-direction: column;
 }
 
 article, #title {
